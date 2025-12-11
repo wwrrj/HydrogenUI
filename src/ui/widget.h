@@ -7,7 +7,7 @@ namespace Hydrogen {
 
 /**
  * @brief UI 控件基类
- * 
+ *
  * 所有 UI 组件（如按钮、列表、标签）都必须继承此类。
  * 支持树状层级结构（父子关系），尽管目前主要使用扁平结构。
  */
@@ -52,12 +52,12 @@ public:
      * @brief 设置可见性
      */
     void setVisible(bool v) { visible = v; }
-    
+
     /**
      * @brief 检查是否可见
      */
     bool isVisible() const { return visible; }
-    
+
     /**
      * @brief 获取控件边界
      */
@@ -108,15 +108,15 @@ public:
 class Label : public Widget {
     std::string text;
     bool hasArrow; // 是否显示二级菜单箭头
-    
+
 public:
     // w 默认为 0 (自适应宽度)。如果设置了 w (如 100)，则箭头会画在最右边
-    Label(int x, int y, const std::string& text, bool hasArrow = false, int w = 0) 
+    Label(int x, int y, const std::string& text, bool hasArrow = false, int w = 0)
         : Widget(x, y, w, 0), text(text), hasArrow(hasArrow) {}
-        
+
     void draw(Graphics& g) override;
     std::string toString() const override { return text; }
-    
+
     // 如果有箭头，通常意味着这是一个可点击进入的菜单项
     bool isInteractive() const override { return hasArrow; }
 };
@@ -129,19 +129,19 @@ class Switch : public Widget {
 private:
     std::string label;
     bool isOn;
-    
+
     // 动画状态
     float knobX;        // 当前滑块位置 (0.0 ~ 1.0)
     float targetKnobX;  // 目标位置 (0.0 或 1.0)
-    
+
 public:
-    Switch(int x, int y, int w, int h, const std::string& label, bool initial = false) 
+    Switch(int x, int y, int w, int h, const std::string& label, bool initial = false)
         : Widget(x, y, w, h), label(label), isOn(initial), knobX(initial ? 1.0f : 0.0f), targetKnobX(initial ? 1.0f : 0.0f) {}
-        
+
     void update() override;
     void draw(Graphics& g) override;
     std::string toString() const override { return label; }
-    
+
     bool isInteractive() const override { return true; }
     void click() override { toggle(); }
 
@@ -162,28 +162,28 @@ private:
     float targetValue;  // 目标值
     bool twoLineMode;   // 是否分两行显示
     float smoothing;    // 平滑系数 (0.0 ~ 1.0, 越小越平滑)
-    
+
 public:
     /**
      * @param twoLineMode 如果为 true，文字在第一行，进度条在第二行
      */
-    ProgressBar(int x, int y, int w, int h, const std::string& label, float initial = 0.0f, bool twoLineMode = false) 
+    ProgressBar(int x, int y, int w, int h, const std::string& label, float initial = 0.0f, bool twoLineMode = false)
         : Widget(x, y, w, h), label(label), value(initial), targetValue(initial), twoLineMode(twoLineMode), smoothing(0.2f) {}
-        
+
     void update() override;
     void draw(Graphics& g) override;
     std::string toString() const override { return label; }
-    
+
     // 进度条通常是只读展示，不可交互
     bool isInteractive() const override { return false; }
-    
-    void setValue(float v) { 
+
+    void setValue(float v) {
         if (v < 0.0f) v = 0.0f;
         if (v > 1.0f) v = 1.0f;
         targetValue = v; // 仅设置目标值，实际值在 update 中平滑过渡
     }
     float getValue() const { return targetValue; }
-    
+
     /**
      * @brief 设置平滑系数
      * @param s 0.1(慢) ~ 1.0(快)
@@ -243,12 +243,12 @@ private:
     bool autoScroll;
 
 public:
-    Logger(int x, int y, int w, int h, int maxLines = 10) 
+    Logger(int x, int y, int w, int h, int maxLines = 10)
         : Widget(x, y, w, h), maxLines(maxLines), lineHeight(12), autoScroll(true) {}
 
     void log(const std::string& msg);
     void draw(Graphics& g) override;
-    
+
     // 清空日志
     void clear() { lines.clear(); }
 };
