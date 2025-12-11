@@ -19,7 +19,7 @@ namespace Hydrogen {
  */
 class List : public Widget {
 private:
-    std::vector<std::string> items; ///< 列表项数据
+    std::vector<Widget*> items;     ///< 列表项控件
     int selectedIndex;              ///< 当前选中的索引
     int itemHeight;                 ///< 单行高度（像素）
 
@@ -47,11 +47,24 @@ public:
           easing(0.3f) {
     }
 
+    ~List() {
+        for (auto item : items) {
+            delete item;
+        }
+    }
+
     /**
-     * @brief 添加列表项
+     * @brief 添加列表项 (文本)
+     * 内部会自动创建一个 Label 控件
      * @param item 显示文本 (支持 UTF-8)
      */
     void addItem(const std::string& item);
+
+    /**
+     * @brief 添加列表项 (自定义控件)
+     * @param widget 控件指针 (List 将接管其生命周期)
+     */
+    void addItem(Widget* widget);
 
     /**
      * @brief 选中下一项
