@@ -1,0 +1,33 @@
+{
+  "name": "HydrogenUI",
+  "version": "1.0.0",
+  "description": "Lightweight, high-performance UI framework with virtual camera and smooth animations for embedded devices (STM32, ESP32, Arduino).",
+  "keywords": "ui, gui, oled, animation, smooth-scrolling, stm32, esp32, arduino, u8g2",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/HydrogenUI.git"
+  },
+  "authors": [
+    {
+      "name": "Hydrogen Team",
+      "email": "dev@hydrogen.ui",
+      "url": "https://github.com/your-username/HydrogenUI"
+    }
+  ],
+  "license": "MIT",
+  "frameworks": "*",
+  "platforms": "*",
+  "dependencies": {
+    "olikraus/U8g2": "^2.34.0"
+  },
+  "export": {
+    "include": [
+      "src/*",
+      "examples/*",
+      "README.md",
+      "library.json",
+      "library.properties",
+      "LICENSE"
+    ]
+  }
+}
