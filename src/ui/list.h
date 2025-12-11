@@ -19,17 +19,17 @@ namespace Hydrogen {
  */
 class List : public Widget {
 private:
-    std::vector<std::string> items; ///< 列表项数据
+    std::vector<Widget*> items;     ///< 列表项控件
     int selectedIndex;              ///< 当前选中的索引
     int itemHeight;                 ///< 单行高度（像素）
-
+    
     // 动画状态变量
     float selectY;           ///< 选中框当前 Y 坐标
     float targetSelectY;     ///< 选中框目标 Y 坐标
-
+    
     float selectWidth;       ///< 选中框当前宽度
     float targetSelectWidth; ///< 选中框目标宽度
-
+    
     float easing;            ///< 动画缓动系数 (0.0 - 1.0)
 
 public:
@@ -40,18 +40,31 @@ public:
      * @param w 宽度
      * @param h 高度
      */
-    List(int x, int y, int w, int h)
-        : Widget(x, y, w, h), selectedIndex(0), itemHeight(16),
-          selectY(0), targetSelectY(0),
+    List(int x, int y, int w, int h) 
+        : Widget(x, y, w, h), selectedIndex(0), itemHeight(16), 
+          selectY(0), targetSelectY(0), 
           selectWidth(0), targetSelectWidth(0),
           easing(0.3f) {
     }
 
+    ~List() {
+        for (auto item : items) {
+            delete item;
+        }
+    }
+
     /**
-     * @brief 添加列表项
+     * @brief 添加列表项 (文本)
+     * 内部会自动创建一个 Label 控件
      * @param item 显示文本 (支持 UTF-8)
      */
     void addItem(const std::string& item);
+
+    /**
+     * @brief 添加列表项 (自定义控件)
+     * @param widget 控件指针 (List 将接管其生命周期)
+     */
+    void addItem(Widget* widget);
 
     /**
      * @brief 选中下一项
