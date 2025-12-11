@@ -129,6 +129,19 @@ void Switch::draw(Graphics& g) {
     }
 }
 
+void ProgressBar::update() {
+    // 一阶低通滤波 (Exponential Moving Average)
+    // value = (target * alpha) + (current * (1 - alpha))
+    // 这里的 smoothing 参数直接作为 alpha
+    //
+    // 如果差异很小，直接等于目标值，避免浮点数“无限逼近”导致的计算开销
+    if (std::abs(targetValue - value) > 0.001f) {
+        value += (targetValue - value) * smoothing;
+    } else {
+        value = targetValue;
+    }
+}
+
 void ProgressBar::draw(Graphics& g) {
     if (!visible) return;
 
@@ -173,6 +186,129 @@ void ProgressBar::draw(Graphics& g) {
             if (fillW > 0) {
                 g.fillRect(barX + 2, barY + 2, fillW, barH - 4);
             }
+        }
+    }
+}
+
+void Line::draw(Graphics& g) {
+    if (!visible) return;
+    g.drawLine(bounds.x, bounds.y, x2, y2);
+}
+
+void RectWidget::draw(Graphics& g) {
+    if (!visible) return;
+    if (filled) {
+        g.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);
+    } else {
+        g.drawRect(bounds.x, bounds.y, bounds.w, bounds.h);
+    }
+}
+
+void CircleWidget::draw(Graphics& g) {
+    if (!visible) return;
+    // bounds.x, y 是圆心还是左上角？
+    // Widget 构造函数里 CircleWidget 用的是 (x,y, r*2, r*2) 作为 bounds
+    // 这意味着 bounds.x, y 是左上角
+    // 但 Graphics::drawCircle 需要圆心
+    int cx = bounds.x + radius;
+    int cy = bounds.y + radius;
+
+    if (filled) {
+        g.fillCircle(cx, cy, radius);
+    } else {
+        g.drawCircle(cx, cy, radius);
+    }
+}
+
+void Pixel::draw(Graphics& g) {
+    if (!visible) return;
+    // Graphics 没有 drawPixel，用 1px 线代替，或者调用 HAL
+    // 假设 drawLine(x,y,x,y) 可以画点
+    g.drawLine(bounds.x, bounds.y, bounds.x, bounds.y);
+}
+
+void Logger::log(const std::string& msg) {
+    lines.push_back(msg);
+    // 保持最大行数
+    while ((int)lines.size() > maxLines) {
+        lines.erase(lines.begin());
+    }
+}
+
+void Logger::draw(Graphics& g) {
+    if (!visible) return;
+
+    // 绘制终端背景 (可选)
+    // g.fillRect(bounds.x, bounds.y, bounds.w, bounds.h); // 需要设置颜色反转逻辑，这里默认黑色背景
+
+    int y = bounds.y;
+    for (const auto& line : lines) {
+        g.drawText(bounds.x + 2, y + lineHeight, line); // 基线对齐
+        y += lineHeight;
+    }
+
+    // 绘制光标 (闪烁效果可加)
+    if (lines.size() < (size_t)maxLines) {
+        g.drawText(bounds.x + 2, y + lineHeight, "_");
+    }
+}
+
+MatrixRain::MatrixRain(int x, int y, int w, int h) : Widget(x, y, w, h) {
+    for (int i = 0; i < MAX_COLS; i++) {
+        cols[i].y = -std::rand() % 64; // 随机初始高度
+        cols[i].speed = (std::rand() % 20 + 10) / 10.0f; // 随机速度 1.0 ~ 3.0
+        cols[i].length = std::rand() % 6 + 3; // 长度 3~8
+        cols[i].content = (char)(std::rand() % 94 + 33); // ASCII 33-126
+    }
+}
+
+void MatrixRain::update() {
+    for (int i = 0; i < MAX_COLS; i++) {
+        cols[i].y += cols[i].speed;
+
+        // 随机改变字符
+        if (std::rand() % 10 > 8) {
+            cols[i].content = (char)(std::rand() % 94 + 33);
+        }
+
+        if (cols[i].y > bounds.h + 10) {
+            cols[i].y = -(std::rand() % 20);
+            cols[i].speed = (std::rand() % 30 + 10) / 10.0f;
+        }
+    }
+}
+
+void MatrixRain::draw(Graphics& g) {
+    if (!visible) return;
+
+    // 列宽 6px，行高 8px (对于小字体)
+    for (int i = 0; i < MAX_COLS; i++) {
+        int x = bounds.x + i * 6;
+        int headY = (int)cols[i].y;
+
+        // 绘制整条雨滴
+        for (int j = 0; j < cols[i].length; j++) {
+            int y = headY - j * 8;
+
+            // 越界检查
+            if (y < -8) continue; // 还在屏幕上方太远
+            if (y > bounds.h) continue; // 已经掉出屏幕
+
+            // 字符生成：头部是 content，尾部依次偏移
+            char displayChar = (char)(((cols[i].content + j) % 94) + 33);
+            std::string s(1, displayChar);
+
+            // 绘制
+            // 注意：头部(j=0)应该是最亮的。OLED 没有亮度，我们全画实心。
+            // 也可以通过隔行绘制尾部来模拟变暗效果
+            if (j > 0 && j % 2 != 0) {
+                // 尾部奇数位置跳过绘制，模拟虚线/变暗
+                // continue;
+            }
+
+            // 垂直坐标对齐：drawText 通常 y 是基线。
+            // 假设字体高 8，基线大概在 Top + 7
+            g.drawText(x, y + 7, s);
         }
     }
 }
