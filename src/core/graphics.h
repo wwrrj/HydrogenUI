@@ -77,6 +77,14 @@ public:
     void drawCircle(int x0, int y0, int r);
 
     /**
+     * @brief 绘制实心圆
+     * @param x0 圆心 X
+     * @param y0 圆心 Y
+     * @param r 半径
+     */
+    void fillCircle(int x0, int y0, int r);
+
+    /**
      * @brief 绘制圆角矩形
      * @param r 圆角半径
      */

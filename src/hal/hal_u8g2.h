@@ -41,11 +41,11 @@ public:
 
     void drawStr(int x, int y, const char* s) override {
         u8g2->setDrawColor(1);
-        u8g2->drawStr(x, y, s);
+        u8g2->drawUTF8(x, y, s);
     }
 
     int getStrWidth(const char* s) override {
-        return u8g2->getStrWidth(s);
+        return u8g2->getUTF8Width(s);
     }
 
     unsigned long getMillis() override {

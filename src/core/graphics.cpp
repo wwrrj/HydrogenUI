@@ -84,6 +84,45 @@ void Graphics::drawCircle(int x0, int y0, int r) {
     }
 }
 
+void Graphics::fillCircle(int x0, int y0, int r) {
+    // 转换到屏幕坐标
+    x0 -= camX; y0 -= camY;
+
+    // 使用 Bresenham 算法生成圆周点，并用水平线填充
+    int f = 1 - r;
+    int ddF_x = 1;
+    int ddF_y = -2 * r;
+    int x = 0;
+    int y = r;
+
+    // 中心线
+    hal->drawPixel(x0, y0 + r, 1);
+    hal->drawPixel(x0, y0 - r, 1);
+    // 水平线填充 (中心)
+    for (int i = x0 - r; i <= x0 + r; ++i) hal->drawPixel(i, y0, 1);
+
+    while (x < y) {
+        if (f >= 0) {
+            y--;
+            ddF_y += 2;
+            f += ddF_y;
+        }
+        x++;
+        ddF_x += 2;
+        f += ddF_x;
+
+        // 填充水平线
+        for (int i = x0 - x; i <= x0 + x; ++i) {
+            hal->drawPixel(i, y0 + y, 1);
+            hal->drawPixel(i, y0 - y, 1);
+        }
+        for (int i = x0 - y; i <= x0 + y; ++i) {
+            hal->drawPixel(i, y0 + x, 1);
+            hal->drawPixel(i, y0 - x, 1);
+        }
+    }
+}
+
 void Graphics::drawRoundRect(int x, int y, int w, int h, int r) {
     // 绘制四条直线边（留出圆角空间）
     drawLine(x + r, y, x + w - r - 1, y);                 // 上
