@@ -62,6 +62,33 @@ public:
      * @brief 获取控件边界
      */
     Rect getBounds() const { return bounds; }
+
+    /**
+     * @brief 设置控件位置
+     * @param x 新的 X 坐标
+     * @param y 新的 Y 坐标
+     */
+    void setPosition(int x, int y) {
+        bounds.x = x;
+        bounds.y = y;
+    }
+
+    /**
+     * @brief 检查控件是否可交互
+     * 用于列表选择逻辑：只有可交互的控件才能被选中
+     */
+    virtual bool isInteractive() const { return false; }
+
+    /**
+     * @brief 触发点击事件
+     */
+    virtual void click() {}
+
+    /**
+     * @brief 获取控件内容的字符串表示
+     * 用于列表宽度自适应计算
+     */
+    virtual std::string toString() const { return ""; }
 };
 
 /**
@@ -70,22 +97,79 @@ public:
  */
 class Label : public Widget {
     std::string text;
+    bool hasArrow; // 是否显示二级菜单箭头
+    
 public:
-    Label(int x, int y, const std::string& text) : Widget(x, y, 0, 0), text(text) {}
+    // w 默认为 0 (自适应宽度)。如果设置了 w (如 100)，则箭头会画在最右边
+    Label(int x, int y, const std::string& text, bool hasArrow = false, int w = 0) 
+        : Widget(x, y, w, 0), text(text), hasArrow(hasArrow) {}
+        
     void draw(Graphics& g) override;
+    std::string toString() const override { return text; }
+    
+    // 如果有箭头，通常意味着这是一个可点击进入的菜单项
+    bool isInteractive() const override { return hasArrow; }
 };
 
 /**
- * @brief 按钮控件
- * 简单的矩形按钮，包含文本标签。
+ * @brief 开关控件
+ * 包含描述文本和右侧的切换开关
  */
-class Button : public Widget {
+class Switch : public Widget {
+private:
     std::string label;
-    bool pressed;
+    bool isOn;
+    
+    // 动画状态
+    float knobX;        // 当前滑块位置 (0.0 ~ 1.0)
+    float targetKnobX;  // 目标位置 (0.0 或 1.0)
+    
 public:
-    Button(int x, int y, int w, int h, const std::string& label) 
-        : Widget(x, y, w, h), label(label), pressed(false) {}
+    Switch(int x, int y, int w, int h, const std::string& label, bool initial = false) 
+        : Widget(x, y, w, h), label(label), isOn(initial), knobX(initial ? 1.0f : 0.0f), targetKnobX(initial ? 1.0f : 0.0f) {}
+        
+    void update() override;
     void draw(Graphics& g) override;
+    std::string toString() const override { return label; }
+    
+    bool isInteractive() const override { return true; }
+    void click() override { toggle(); }
+
+    // 切换状态
+    void toggle();
+    void setState(bool s);
+    bool getState() const { return isOn; }
+};
+
+/**
+ * @brief 进度条控件
+ * 用于显示数值进度
+ */
+class ProgressBar : public Widget {
+private:
+    std::string label;
+    float value; // 0.0 ~ 1.0
+    bool twoLineMode; // 是否分两行显示
+    
+public:
+    /**
+     * @param twoLineMode 如果为 true，文字在第一行，进度条在第二行
+     */
+    ProgressBar(int x, int y, int w, int h, const std::string& label, float initial = 0.0f, bool twoLineMode = false) 
+        : Widget(x, y, w, h), label(label), value(initial), twoLineMode(twoLineMode) {}
+        
+    void draw(Graphics& g) override;
+    std::string toString() const override { return label; }
+    
+    // 进度条通常是只读展示，不可交互
+    bool isInteractive() const override { return false; }
+    
+    void setValue(float v) { 
+        if (v < 0.0f) v = 0.0f;
+        if (v > 1.0f) v = 1.0f;
+        value = v; 
+    }
+    float getValue() const { return value; }
 };
 
 } // namespace Hydrogen
